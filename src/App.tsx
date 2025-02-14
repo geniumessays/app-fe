@@ -1,89 +1,142 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
+import Spinner from './components/Spinner'
 
-interface FormData {
-  topic: string
-  exampleText: string
-  wordCount: number
-}
+import { SERVER_DOMAIN } from './assets/constants'
 
-export default function App() {
-  const [formData, setFormData] = useState<FormData>({
-    topic: '',
-    exampleText: '',
-    wordCount: 0,
-  })
-  const [output, setOutput] = useState<string>('')
+const App: React.FC = () => {
+  const [topic, setTopic] = useState('')
+  const [exampleText, setExampleText] = useState('')
+  const [wordCount, setWordCount] = useState(500)
+  const [output, setOutput] = useState('')
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({
-      ...prev,
-      [name]: name === 'wordCount' ? Number(value) : value,
-    }))
-  }
+  const [spinner, setSpinner] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Call API (replace with your endpoint)
-    const response = await fetch('/api/generate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData),
-    })
-    const data = await response.json()
-    setOutput(data.result)
+    setSpinner(true)
+    try {
+      const response = await fetch(`${SERVER_DOMAIN}/generate-essay`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          topic: topic,
+          exampleText: exampleText,
+          wordCount: wordCount,
+        }),
+      })
+      if (!response.ok) {
+        throw new Error('The response from the server was not ok')
+      }
+      const data = await response.json()
+      setSpinner(false)
+      setOutput(data.response)
+    } catch (error) {
+      console.error('There was a problem with the fetch operation', error)
+    }
   }
 
   return (
-    <div>
-      <h1 className="text-4xl text-center">GENIUM ESSAYS</h1>
-      <div className="flex min-h-screen p-8">
-        {/* Form Section */}
-        <div className="w-1/2 p-4 border-r">
-          <h1 className="text-xl font-bold mb-4">Essay Generator</h1>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <input
-              type="text"
-              name="topic"
-              value={formData.topic}
-              onChange={handleChange}
-              placeholder="Enter topic"
-              className="w-full p-2 border rounded"
-            />
-            <textarea
-              name="exampleText"
-              value={formData.exampleText}
-              onChange={handleChange}
-              placeholder="Enter example text"
-              className="w-full p-2 border rounded"
-            />
-            <input
-              type="number"
-              name="wordCount"
-              value={formData.wordCount}
-              onChange={handleChange}
-              placeholder="Word count"
-              className="w-full p-2 border rounded"
-            />
+    <div className="min-h-screen bg-gray-50 p-6 flex items-center justify-center">
+      {spinner && <Spinner />}
+      <div className="max-w-7xl w-full bg-white rounded-lg shadow-lg p-8">
+        <h1 className="text-4xl font-bold text-center text-gray-900 mb-6">
+          GENIUM ESSAYS - Playground
+        </h1>
+
+        {/* Responsive Layout: Form and Output */}
+        <div className="flex flex-col sm:flex-row gap-8">
+          {/* Form Section */}
+          <form
+            onSubmit={handleSubmit}
+            className="flex flex-col space-y-4 w-full sm:w-1/2"
+          >
+            <div>
+              <label
+                htmlFor="topic"
+                className="block text-lg font-medium text-gray-700"
+              >
+                Topic
+              </label>
+              <input
+                type="text"
+                id="topic"
+                value={topic}
+                onChange={(e) => setTopic(e.target.value)}
+                className="mt-2 w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                required
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="exampleText"
+                className="block text-lg font-medium text-gray-700"
+              >
+                Example Text
+              </label>
+              <textarea
+                id="exampleText"
+                value={exampleText}
+                onChange={(e) => setExampleText(e.target.value)}
+                className="mt-2 w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                rows={4}
+                required
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="wordCount"
+                className="block text-lg font-medium text-gray-700"
+              >
+                Word Count
+              </label>
+              <input
+                type="number"
+                id="wordCount"
+                value={wordCount}
+                onChange={(e) => setWordCount(Number(e.target.value))}
+                className="mt-2 w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                required
+              />
+            </div>
             <button
               type="submit"
-              className="w-full p-2 bg-blue-500 text-white rounded"
+              className="w-[150px] h-[50px] text-base bg-[#1a1a1a] text-white border-2 border-white cursor-pointer rounded-[10px] transition-all duration-300 hover:bg-[#444444] focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
-              Generate
+              Generate Essay
             </button>
           </form>
-        </div>
 
-        {/* Output Section */}
-        <div className="w-1/2 p-4">
-          <h2 className="text-lg font-bold mb-2">Generated Essay:</h2>
-          <p className="border p-2 rounded">
-            {output || 'Your essay will appear here...'}
-          </p>
+          {/* Output Section */}
+          <div className="w-full sm:w-1/2 flex flex-col justify-between">
+            <div className="h-full flex flex-col justify-center items-start p-4">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                Generated Essay
+              </h2>
+              <div className="bg-gray-100 p-4 rounded-lg shadow-sm w-full h-full overflow-y-auto">
+                <p className="text-gray-800">
+                  {output || 'Your generated essay will appear here.'}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setTopic('')
+                  setExampleText('')
+                  setWordCount(500) // Default word count
+                  setOutput('')
+                }}
+                className="w-[150px] h-[70px] text-base bg-[#1a1a1a] text-white border-2 border-white cursor-pointer rounded-[10px] transition-all duration-300 hover:bg-[#444444] focus:outline-none focus:ring-2 focus:ring-indigo-500 mt-4"
+              >
+                Reset
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   )
 }
+
+export default App
