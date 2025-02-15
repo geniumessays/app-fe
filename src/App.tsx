@@ -127,7 +127,7 @@ const App: React.FC = () => {
                   setWordCount(500) // Default word count
                   setOutput('')
                 }}
-                className="w-[150px] h-[70px] text-base bg-[#1a1a1a] text-white border-2 border-white cursor-pointer rounded-[10px] transition-all duration-300 hover:bg-[#444444] focus:outline-none focus:ring-2 focus:ring-indigo-500 mt-4"
+                className="self-end w-[150px] h-[70px] text-base bg-[#1a1a1a] text-white border-2 border-white cursor-pointer rounded-[10px] transition-all duration-300 hover:bg-[#444444] focus:outline-none focus:ring-2 focus:ring-indigo-500 mt-4"
               >
                 Reset
               </button>
